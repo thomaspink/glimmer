@@ -370,30 +370,26 @@ class ComponentBuilder {
   static({ definition, args, shadow, templates }: StaticComponentOptions) {
     let { dsl, env } = this;
 
-    dsl.startBlock({ templates });
-    dsl.openComponent({ definition, args, shadow, templates });
-    dsl.closeComponent();
-    dsl.endBlock();
+    dsl.unit({ templates}, dsl => {
+      dsl.openComponent({ definition, args, shadow, templates });
+      dsl.closeComponent();
+    });
   }
 
   dynamic({ definition, args, shadow, templates }: DynamicComponentOptions) {
     let { dsl, env } = this;
 
-    dsl.startLabels();
-    dsl.startBlock({ templates });
-
-    dsl.enter('BEGIN', 'END');
-    dsl.label('BEGIN');
-    dsl.putArgs(definition.args);
-    dsl.putComponentDefinition(definition.factory)
-    dsl.putArgs(args);
-    dsl.openDynamicComponent(shadow);
-    dsl.closeComponent();
-    dsl.label('END');
-    dsl.exit();
-
-    dsl.endBlock();
-    dsl.stopLabels();
+    dsl.unit({ templates }, dsl => {
+      dsl.enter('BEGIN', 'END');
+      dsl.label('BEGIN');
+      dsl.putArgs(definition.args);
+      dsl.putComponentDefinition(definition.factory)
+      dsl.putArgs(args);
+      dsl.openDynamicComponent(shadow);
+      dsl.closeComponent();
+      dsl.label('END');
+      dsl.exit();
+    });
   }
 }
 

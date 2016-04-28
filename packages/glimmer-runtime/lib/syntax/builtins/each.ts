@@ -73,46 +73,43 @@ export default class EachSyntax extends StatementSyntax {
 
     let { args, templates } = this;
 
-    dsl.startBlock({ templates });
-    dsl.startLabels();
+    dsl.unit({ templates }, dsl => {
+      dsl.enter('BEGIN', 'END');
+      dsl.label('BEGIN');
+      dsl.putArgs(args);
+      dsl.putIterator();
 
-    dsl.enter('BEGIN', 'END');
-    dsl.label('BEGIN');
-    dsl.putArgs(args);
-    dsl.putIterator();
+      let falsyLabel = templates.inverse ? 'ELSE' : 'END';
+      dsl.jumpUnless(falsyLabel);
 
-    let falsyLabel = templates.inverse ? 'ELSE' : 'END';
-    dsl.jumpUnless(falsyLabel);
+      dsl.unit({ templates }, dsl => {
+        dsl.enterList('BEGIN', 'END');
+        dsl.label('ITER');
+        dsl.nextIter('BREAK');
+        dsl.enterWithKey('BEGIN', 'END');
+        dsl.label('BEGIN');
+        dsl.pushChildScope();
+        dsl.evaluate('default');
+        dsl.popScope();
+        dsl.label('END');
+        dsl.exit()
+        dsl.jump('ITER');
+        dsl.label('BREAK');
+        dsl.exitList();
+      });
 
-    dsl.startLabels();
+      dsl.jump('END');
 
-    dsl.enterList('BEGIN', 'END');
-    dsl.label('ITER');
-    dsl.nextIter('BREAK');
-    dsl.enterWithKey('BEGIN', 'END');
-    dsl.label('BEGIN');
-    dsl.pushChildScope();
-    dsl.evaluate('default');
-    dsl.popScope();
-    dsl.label('END');
-    dsl.exit()
-    dsl.jump('ITER');
-    dsl.label('BREAK');
-    dsl.exitList();
+      if (templates.inverse) {
+        dsl.label('ELSE');
+        dsl.evaluate('inverse');
+      }
 
-    dsl.stopLabels();
+      dsl.label('END');
+      dsl.exit();
+    })
 
-    dsl.jump('END');
 
-    if (templates.inverse) {
-      dsl.label('ELSE');
-      dsl.evaluate('inverse');
-    }
 
-    dsl.label('END');
-    dsl.exit();
-
-    dsl.endBlock();
-    dsl.stopLabels();
   }
 }

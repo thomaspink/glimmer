@@ -53,29 +53,28 @@ export default class IfSyntax extends StatementSyntax {
 
     let { args, templates } = this;
 
-    dsl.startLabels();
-    dsl.startBlock({ templates });
+    dsl.unit({ templates }, dsl => {
+      dsl.enter('BEGIN', 'END');
+      dsl.label('BEGIN');
+      dsl.putArgs(args);
+      dsl.test();
 
-    dsl.enter('BEGIN', 'END');
-    dsl.label('BEGIN');
-    dsl.putArgs(args);
-    dsl.test();
+      if (templates.inverse) {
+        dsl.jumpUnless('ELSE');
+        dsl.evaluate('default');
+        dsl.jump('END');
+        dsl.label('ELSE');
+        dsl.evaluate('inverse')
+      } else {
+        dsl.jumpUnless('END');
+        dsl.evaluate('default');
+      }
 
-    if (templates.inverse) {
-      dsl.jumpUnless('ELSE');
-      dsl.evaluate('default');
-      dsl.jump('END');
-      dsl.label('ELSE');
-      dsl.evaluate('inverse')
-    } else {
-      dsl.jumpUnless('END');
-      dsl.evaluate('default');
-    }
+      dsl.label('END');
+      dsl.exit();
+    });
 
-    dsl.label('END');
-    dsl.exit();
 
-    dsl.endBlock();
-    dsl.stopLabels();
+
   }
 }

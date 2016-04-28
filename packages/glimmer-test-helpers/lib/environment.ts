@@ -831,9 +831,7 @@ class IdentitySyntax extends StatementSyntax {
   }
 
   compile(dsl: OpcodeBuilderDSL) {
-    dsl.startBlock({ templates: this.templates });
-    dsl.evaluate('default');
-    dsl.endBlock();
+    dsl.evaluate('default', this.templates.default);
   }
 }
 
@@ -850,9 +848,7 @@ class RenderInverseIdentitySyntax extends StatementSyntax {
   }
 
   compile(dsl: OpcodeBuilderDSL) {
-    dsl.startBlock({ templates: this.templates });
-    dsl.evaluate('inverse');
-    dsl.endBlock();
+    dsl.evaluate('inverse', this.templates.inverse);
   }
 }
 
@@ -880,17 +876,12 @@ class WithKeywordsSyntax extends StatementSyntax {
 
     let { args, templates } = this;
 
-    dsl.startBlock({ templates });
-    dsl.startLabels();
-
-    dsl.putArgs(args);
-    dsl.pushDynamicScope();
-    dsl.bindDynamicScope(callback);
-    dsl.evaluate('default');
-    dsl.popDynamicScope();
-
-    dsl.stopLabels();
-    dsl.endBlock();
+    dsl.unit({ templates }, dsl => {
+      dsl.putArgs(args);
+      dsl.setupDynamicScope(callback);
+      dsl.evaluate('default');
+      dsl.popDynamicScope();
+    });
   }
 }
 

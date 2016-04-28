@@ -279,8 +279,8 @@ export class BasicOpcodeBuilder extends StatementCompilationBufferProxy {
     this.append(new vm.ExitOpcode());
   }
 
-  evaluate(name: string) {
-    this.append(new vm.EvaluateOpcode({ debug: name, block: this.templates[name] }));
+  evaluate(name: string, block = this.templates[name]) {
+    this.append(new vm.EvaluateOpcode({ debug: name, block }));
   }
 
   test() {
@@ -301,5 +301,16 @@ export class BasicOpcodeBuilder extends StatementCompilationBufferProxy {
 }
 
 export default class OpcodeBuilder extends BasicOpcodeBuilder {
+  setupDynamicScope(callback: vm.BindDynamicScopeCallback) {
+    this.pushDynamicScope();
+    this.bindDynamicScope(callback);
+  }
 
+  unit({ templates }: { templates: Syntax.Templates }, callback: (builder: OpcodeBuilder) => void) {
+    this.startLabels();
+    this.startBlock({ templates });
+    callback(this);
+    this.endBlock();
+    this.stopLabels();
+  }
 }
