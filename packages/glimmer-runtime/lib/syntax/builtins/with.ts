@@ -52,25 +52,25 @@ export default class WithSyntax extends StatementSyntax {
 
     let { args, templates } = this;
 
-    dsl.unit({ templates }, dsl => {
-      dsl.enter('BEGIN', 'END');
-      dsl.label('BEGIN');
-      dsl.putArgs(args);
+    dsl.block({ templates, args }, (dsl, BEGIN, END) => {
       dsl.test();
 
-      let falsyLabel = templates.inverse ? 'ELSE' : 'END';
-      dsl.jumpUnless(falsyLabel);
+      if (templates.inverse) {
+        dsl.jumpUnless('ELSE');
+      } else {
+        dsl.jumpUnless(END);
+      }
 
-      dsl.evaluate('default')
-      dsl.jump('END');
+      dsl.evaluate('default');
+      dsl.jump(END);
 
       if (templates.inverse) {
         dsl.label('ELSE');
         dsl.evaluate('inverse');
+      } else {
+        dsl.evaluate('default');
+        dsl.jump(END);
       }
-
-      dsl.label('END');
-      dsl.exit();
     });
   }
 }

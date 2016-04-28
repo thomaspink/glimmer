@@ -53,10 +53,7 @@ export default class UnlessSyntax extends StatementSyntax {
 
     let { args, templates } = this;
 
-    dsl.unit({ templates }, dsl => {
-      dsl.enter('BEGIN', 'END');
-      dsl.label('BEGIN');
-      dsl.putArgs(args);
+    dsl.block({ templates, args }, dsl => {
       dsl.test();
 
       if (templates.inverse) {
@@ -69,9 +66,6 @@ export default class UnlessSyntax extends StatementSyntax {
         dsl.jumpIf('END');
         dsl.evaluate('default');
       }
-
-      dsl.label('END');
-      dsl.exit();
     });
   }
 }

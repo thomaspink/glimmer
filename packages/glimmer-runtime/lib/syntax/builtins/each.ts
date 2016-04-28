@@ -73,43 +73,27 @@ export default class EachSyntax extends StatementSyntax {
 
     let { args, templates } = this;
 
-    dsl.unit({ templates }, dsl => {
-      dsl.enter('BEGIN', 'END');
-      dsl.label('BEGIN');
-      dsl.putArgs(args);
+    dsl.block({ templates, args }, (dsl, BEGIN, END) => {
       dsl.putIterator();
 
-      let falsyLabel = templates.inverse ? 'ELSE' : 'END';
-      dsl.jumpUnless(falsyLabel);
+      if (templates.inverse) {
+        dsl.jumpUnless('ELSE');
+      } else {
+        dsl.jumpUnless(END);
+      }
 
-      dsl.unit({ templates }, dsl => {
-        dsl.enterList('BEGIN', 'END');
-        dsl.label('ITER');
-        dsl.nextIter('BREAK');
-        dsl.enterWithKey('BEGIN', 'END');
-        dsl.label('BEGIN');
+      dsl.iter({ templates }, (dsl, BEGIN, END) => {
         dsl.pushChildScope();
         dsl.evaluate('default');
         dsl.popScope();
-        dsl.label('END');
-        dsl.exit()
-        dsl.jump('ITER');
-        dsl.label('BREAK');
-        dsl.exitList();
       });
 
-      dsl.jump('END');
+      dsl.jump(END);
 
       if (templates.inverse) {
         dsl.label('ELSE');
         dsl.evaluate('inverse');
       }
-
-      dsl.label('END');
-      dsl.exit();
-    })
-
-
-
+    });
   }
 }
